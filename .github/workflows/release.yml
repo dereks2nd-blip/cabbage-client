@@ -25,7 +25,9 @@ jobs:
       # build/icon.{png,ico} are generated from build/icon.svg and gitignored
       - run: npm run icon
 
-      - run: npm run package:win
+      # --publish never: electron-builder auto-publishes when it sees a CI tag,
+      # but the gh-release step below owns the upload.
+      - run: npm run package:win -- --publish never
 
       # --- SignPath code signing (enable once the OSS application is approved) ---
       # 1. Apply at https://signpath.org (free for open-source; this repo must stay public)
