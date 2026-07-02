@@ -1,0 +1,36 @@
+appId: com.cabbage.client
+productName: Cabbage Client
+copyright: Copyright © 2026 Derek
+
+directories:
+  buildResources: build
+
+extraResources:
+  - from: resources/resourcepack
+    to: resourcepack
+  - from: resources/mods
+    to: mods
+
+# Allowlist: ship ONLY the compiled app (production node_modules are added
+# automatically). The repo root also holds the mod project, a JDK/Gradle
+# toolchain and old game data — a blacklist here once produced a 1.9 GB installer.
+files:
+  - out/**
+  - package.json
+
+win:
+  icon: build/icon.ico
+  target:
+    - target: nsis
+      arch:
+        - x64
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  shortcutName: Cabbage Client
+
+# No spaces in the artifact name — it becomes a GitHub Releases download URL.
+artifactName: CabbageClient-${version}-setup.${ext}

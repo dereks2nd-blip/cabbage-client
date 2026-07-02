@@ -1,0 +1,25 @@
+node_modules/
+out/
+dist/
+*.log
+*.tsbuildinfo
+.DS_Store
+
+# generated from build/icon.svg via `npm run icon` (svg is the source of truth)
+build/icon.png
+build/icon.ico
+
+# local game data + dev toolchain (huge; never ship)
+minecraft/
+.tools/
+
+# mod build outputs (source is committed; the staged jar in resources/mods is too)
+mod/build/
+mod/.gradle/
+mod/build.log
+
+# local editor/agent config
+.claude/settings.local.json
+
+# private working notes (contains personal info — repo is public)
+HANDOFF.md

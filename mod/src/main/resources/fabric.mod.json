@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "cabbage-hud",
+  "version": "${version}",
+  "name": "Cabbage HUD",
+  "description": "Lunar/Feather-style HUD for Cabbage Client — keystrokes, FPS, coords, armor.",
+  "authors": ["Derek"],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.cabbage.hud.CabbageHudClient"]
+  },
+  "mixins": ["cabbage-hud.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.19.0",
+    "minecraft": "~1.21.11",
+    "fabric-api": "*"
+  }
+}

@@ -1,0 +1,47 @@
+# Builds the Windows installer and attaches it to a GitHub Release.
+# Trigger: push a version tag, e.g.  git tag v0.1.0 && git push origin v0.1.0
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  windows-installer:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # build/icon.{png,ico} are generated from build/icon.svg and gitignored
+      - run: npm run icon
+
+      - run: npm run package:win
+
+      # --- SignPath code signing (enable once the OSS application is approved) ---
+      # 1. Apply at https://signpath.org (free for open-source; this repo must stay public)
+      # 2. Add repo secrets SIGNPATH_API_TOKEN + org/project ids below
+      # - uses: signpath/github-action-submit-signing-request@v1
+      #   with:
+      #     api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+      #     organization-id: '<from signpath dashboard>'
+      #     project-slug: 'cabbage-client'
+      #     signing-policy-slug: 'release-signing'
+      #     artifact-configuration-slug: 'installer'
+      #     github-artifact-id: ${{ steps.upload.outputs.artifact-id }}
+      #     wait-for-completion: true
+      #     output-artifact-directory: dist/signed
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/CabbageClient-*-setup.exe
+          generate_release_notes: true

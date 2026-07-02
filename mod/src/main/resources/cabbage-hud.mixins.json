@@ -1,0 +1,10 @@
+{
+  "required": true,
+  "package": "com.cabbage.hud.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8",
+  "client": ["ScreenPanoramaMixin", "PressableWidgetMixin", "GameRendererAccessor"],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

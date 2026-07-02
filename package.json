@@ -1,0 +1,41 @@
+{
+  "name": "cabbage-client",
+  "productName": "Cabbage Client",
+  "version": "0.1.0",
+  "description": "Cabbage Client — a performance-focused Minecraft launcher",
+  "main": "./out/main/index.js",
+  "author": "Derek",
+  "license": "MIT",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "icon": "node scripts/gen-icon.mjs",
+    "pack": "node scripts/gen-resourcepack.mjs",
+    "titlebg": "node scripts/gen-titlebg.mjs",
+    "package:win": "electron-vite build && electron-builder --win"
+  },
+  "dependencies": {
+    "@electron-toolkit/preload": "^3.0.1",
+    "@electron-toolkit/utils": "^3.0.0",
+    "adm-zip": "^0.5.18",
+    "electron-updater": "^6.3.9"
+  },
+  "devDependencies": {
+    "@electron-toolkit/tsconfig": "^1.0.1",
+    "@types/adm-zip": "^0.5.8",
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
+    "electron-vite": "^2.3.0",
+    "png-to-ico": "^2.1.8",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "sharp": "^0.33.5",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.11"
+  }
+}
