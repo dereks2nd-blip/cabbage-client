@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import birdSitting from './assets/tennisbird.svg'
 import birdGoogly from './assets/tennisbird-googly.svg'
 import { PlayPage } from './pages/PlayPage'
+import { InstancesPage } from './pages/InstancesPage'
 import { ModsPage } from './pages/ModsPage'
 import { PerformancePage } from './pages/PerformancePage'
 import { SettingsPage } from './pages/SettingsPage'
@@ -13,7 +14,7 @@ interface JavaState {
   source?: string
 }
 
-export type Page = 'play' | 'mods' | 'performance' | 'settings'
+export type Page = 'play' | 'instances' | 'mods' | 'performance' | 'settings'
 
 export default function App(): JSX.Element {
   const [appVersion, setAppVersion] = useState('')
@@ -25,6 +26,16 @@ export default function App(): JSX.Element {
   const [selected, setSelected] = useState('')
   const [loader, setLoader] = useState<'vanilla' | 'fabric'>('fabric')
   const [loadingVersions, setLoadingVersions] = useState(true)
+  // Bumped when an instance card's Play is clicked: switches to the Play tab
+  // and tells it to launch immediately with the freshly-set version/loader.
+  const [launchToken, setLaunchToken] = useState(0)
+
+  function playInstance(mcVersion: string, instLoader: 'vanilla' | 'fabric'): void {
+    setSelected(mcVersion)
+    setLoader(instLoader)
+    setPage('play')
+    setLaunchToken((t) => t + 1)
+  }
 
   useEffect(() => {
     window.cabbage.getVersion().then(setAppVersion)
@@ -41,6 +52,7 @@ export default function App(): JSX.Element {
 
   const navItems: Array<{ id: Page; label: string }> = [
     { id: 'play', label: '▶ Play' },
+    { id: 'instances', label: '🗂 Instances' },
     { id: 'mods', label: '◆ Mods' },
     { id: 'performance', label: '⚡ Performance' },
     { id: 'settings', label: '⚙ Settings' }
@@ -87,6 +99,14 @@ export default function App(): JSX.Element {
               loader={loader}
               setLoader={setLoader}
               loadingVersions={loadingVersions}
+              launchToken={launchToken}
+            />
+          )}
+          {page === 'instances' && (
+            <InstancesPage
+              versions={versions}
+              loadingVersions={loadingVersions}
+              onPlay={playInstance}
             />
           )}
           {page === 'mods' && <ModsPage gameVersion={selected} loader={loader} />}

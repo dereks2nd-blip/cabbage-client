@@ -4,27 +4,29 @@ import { existsSync, copyFileSync } from 'fs'
 import { ensureDir } from './paths'
 
 /**
- * Cabbage's own in-game HUD mod (keystrokes/FPS/coords/armor + editor). It's a
- * real Fabric mod compiled for a specific Minecraft version, so we only drop it
- * into instances of that version — installing it into any other version's
- * instance would fail Fabric's dependency check.
+ * Cabbage's own in-game HUD mod (keystrokes/FPS/coords/armor + editor + ESP).
+ * A Fabric mod is compiled per Minecraft version, so resources/mods holds one
+ * jar per supported version (built from mod/ — `gradle build -PmcVer=<v>`).
+ * Instances of other versions get nothing (Fabric's dependency check would
+ * reject a mismatched jar anyway).
  */
-const HUD_TARGET_VERSION = '1.21.11'
+const HUD_VERSIONS = ['1.21.11', '1.21.4', '1.21.1', '1.20.1']
 const HUD_FILENAME = 'cabbage-hud.jar'
 
-function bundledHud(): string {
+function bundledHud(mcVersion: string): string {
+  const file = `cabbage-hud-${mcVersion}.jar`
   return app.isPackaged
-    ? join(process.resourcesPath, 'mods', HUD_FILENAME)
-    : join(app.getAppPath(), 'resources', 'mods', HUD_FILENAME)
+    ? join(process.resourcesPath, 'mods', file)
+    : join(app.getAppPath(), 'resources', 'mods', file)
 }
 
 /**
- * Ensure the Cabbage HUD is present in a Fabric instance whose Minecraft version
- * matches the build target. No-op for other versions/loaders. Best-effort.
+ * Ensure the Cabbage HUD is present in a Fabric instance of a supported
+ * Minecraft version. No-op for other versions/loaders. Best-effort.
  */
 export function ensureClientMod(modsDir: string, mcVersion: string, loader: string): void {
-  if (loader !== 'fabric' || mcVersion !== HUD_TARGET_VERSION) return
-  const src = bundledHud()
+  if (loader !== 'fabric' || !HUD_VERSIONS.includes(mcVersion)) return
+  const src = bundledHud(mcVersion)
   if (!existsSync(src)) return
   const dest = join(ensureDir(modsDir), HUD_FILENAME)
   try {

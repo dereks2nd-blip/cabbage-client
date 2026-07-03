@@ -74,6 +74,27 @@ const cabbage = {
   login: (): Promise<{ name: string; uuid: string }> => ipcRenderer.invoke('auth:login'),
   logout: (): Promise<void> => ipcRenderer.invoke('auth:logout'),
   launch: (opts: LaunchOptions): Promise<void> => ipcRenderer.invoke('launch:start', opts),
+  stopGame: (): Promise<boolean> => ipcRenderer.invoke('launch:stop'),
+  isGameRunning: (): Promise<boolean> => ipcRenderer.invoke('launch:running'),
+  listInstances: (): Promise<
+    Array<{
+      id: string
+      mcVersion: string
+      loader: string
+      name: string
+      modCount: number
+      hasWorlds: boolean
+      lastPlayedMs: number | null
+    }>
+  > => ipcRenderer.invoke('instances:list'),
+  createInstance: (
+    mcVersion: string,
+    loader: string,
+    name?: string
+  ): Promise<{ id: string }> => ipcRenderer.invoke('instances:create', mcVersion, loader, name),
+  renameInstance: (id: string, name: string): Promise<void> =>
+    ipcRenderer.invoke('instances:rename', id, name),
+  deleteInstance: (id: string): Promise<void> => ipcRenderer.invoke('instances:delete', id),
   onLaunchEvent: (cb: (e: unknown) => void): (() => void) => {
     const listener = (_: IpcRendererEvent, e: unknown): void => cb(e)
     ipcRenderer.on('launch:event', listener)

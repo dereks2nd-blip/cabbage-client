@@ -16,6 +16,8 @@ interface Props {
   loader: 'vanilla' | 'fabric'
   setLoader: (l: 'vanilla' | 'fabric') => void
   loadingVersions: boolean
+  /** Bumped by the Instances page to trigger an immediate launch. */
+  launchToken: number
 }
 
 export function PlayPage({
@@ -24,7 +26,8 @@ export function PlayPage({
   setSelected,
   loader,
   setLoader,
-  loadingVersions
+  loadingVersions,
+  launchToken
 }: Props): JSX.Element {
   const [username, setUsername] = useState('Player')
   const [phase, setPhase] = useState<Phase>('idle')
@@ -97,6 +100,32 @@ export function PlayPage({
     setPercent(null)
     window.cabbage.launch({ versionId: selected, username, ramMb: 4096, loader })
   }
+
+  function stop(): void {
+    setStageMsg('Stopping…')
+    window.cabbage.stopGame()
+  }
+
+  // Launch requested from an instance card. Token changes only on click, and
+  // `selected`/`loader` are already updated by the time this page renders.
+  const lastToken = useRef(launchToken)
+  useEffect(() => {
+    if (launchToken !== lastToken.current) {
+      lastToken.current = launchToken
+      if (!busy && selected) play()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [launchToken])
+
+  // On mount, re-sync with a game that's already running (e.g. after tab switches).
+  useEffect(() => {
+    window.cabbage.isGameRunning().then((running) => {
+      if (running) {
+        setPhase('running')
+        setStageMsg('Running')
+      }
+    })
+  }, [])
 
   return (
     <div className="hero">
@@ -181,6 +210,11 @@ export function PlayPage({
           <button className="play-btn" onClick={play} disabled={busy || !selected}>
             {phase === 'working' ? 'WORKING…' : phase === 'running' ? 'PLAYING…' : `▶ PLAY ${selected}`}
           </button>
+          {phase === 'running' && (
+            <button className="play-btn stop-btn" onClick={stop} title="Kill the running game">
+              ■ STOP
+            </button>
+          )}
         </div>
       </div>
 

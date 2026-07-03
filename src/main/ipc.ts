@@ -3,7 +3,8 @@ import { app, BrowserWindow } from 'electron'
 import { detectJava } from './launcher/java'
 import { instanceMods } from './launcher/paths'
 import { listInstallableVersions } from './launcher/versions'
-import { launchGame, type LaunchOptions } from './launcher/launch'
+import { isGameRunning, launchGame, stopGame, type LaunchOptions } from './launcher/launch'
+import { createInstance, deleteInstance, listInstances, renameInstance } from './launcher/instances'
 import {
   searchMods,
   installMod,
@@ -111,6 +112,17 @@ export function registerLauncherIpc(ipcMain: IpcMain): void {
       win.loadURL(authorizeUrl)
     })
   })
+
+  // --- instances ---
+  ipcMain.handle('instances:list', () => listInstances())
+  ipcMain.handle('instances:create', (_e, mcVersion: string, loader: string, name?: string) =>
+    createInstance(mcVersion, loader, name)
+  )
+  ipcMain.handle('instances:rename', (_e, id: string, name: string) => renameInstance(id, name))
+  ipcMain.handle('instances:delete', (_e, id: string) => deleteInstance(id))
+
+  ipcMain.handle('launch:stop', () => stopGame())
+  ipcMain.handle('launch:running', () => isGameRunning())
 
   // Long-running: streams progress/log/exit back over 'launch:event'.
   ipcMain.handle('launch:start', (event, opts: LaunchOptions) => {

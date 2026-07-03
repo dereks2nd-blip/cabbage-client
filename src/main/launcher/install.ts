@@ -158,6 +158,7 @@ export async function installVersion(id: string, onProgress: ProgressFn): Promis
   // --- libraries (vanilla artifacts + Fabric Maven libs + native jars) ---
   const classpath: string[] = []
   const seen = new Set<string>()
+  const seenCoords = new Set<string>()
   const libSpecs: DownloadSpec[] = []
   const nativeJars: NativeJar[] = []
   const addToClasspath = (dest: string): void => {
@@ -166,6 +167,16 @@ export async function installVersion(id: string, onProgress: ProgressFn): Promis
       classpath.push(dest)
     }
   }
+  // Version-insensitive coordinate ("group:artifact[:classifier]"). Fabric and
+  // vanilla can ship DIFFERENT versions of one library (e.g. ASM on 1.21.4:
+  // vanilla 9.6 vs Fabric 9.10.1) — both on the classpath makes Fabric refuse
+  // to boot ("duplicate ASM classes found"). The merged list puts the Fabric
+  // profile's libraries first, so first-one-wins keeps Fabric's build.
+  const coordKey = (name?: string): string | null => {
+    if (!name) return null
+    const [group, artifact, , classifier] = name.split(':')
+    return classifier ? `${group}:${artifact}:${classifier}` : `${group}:${artifact}`
+  }
 
   for (const lib of json.libraries) {
     if (!rulesAllow(lib.rules)) continue
@@ -173,9 +184,13 @@ export async function installVersion(id: string, onProgress: ProgressFn): Promis
     let artifact = lib.downloads?.artifact
     if (!artifact && lib.url && lib.name) artifact = mavenToArtifact(lib.name, lib.url)
     if (artifact) {
-      const dest = libPath(artifact)
-      libSpecs.push({ url: artifact.url, dest, sha1: artifact.sha1 ?? lib.sha1, size: artifact.size })
-      addToClasspath(dest)
+      const key = coordKey(lib.name)
+      if (!key || !seenCoords.has(key)) {
+        if (key) seenCoords.add(key)
+        const dest = libPath(artifact)
+        libSpecs.push({ url: artifact.url, dest, sha1: artifact.sha1 ?? lib.sha1, size: artifact.size })
+        addToClasspath(dest)
+      }
     }
 
     const nativeKey = lib.natives?.[currentOsName()]?.replace('${arch}', process.arch === 'ia32' ? '32' : '64')

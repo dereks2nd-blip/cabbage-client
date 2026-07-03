@@ -29,6 +29,24 @@ export type LaunchEvent =
 
 type Emit = (e: LaunchEvent) => void
 
+// The currently-running game process (one at a time — this is a launcher, not
+// a server farm). Used by the Stop button.
+let runningPid: number | null = null
+
+export function isGameRunning(): boolean {
+  return runningPid !== null
+}
+
+/**
+ * Kill the running game. taskkill /T takes the whole tree — a crashed or hung
+ * Minecraft can survive a plain child.kill() and keep mod jars locked.
+ */
+export function stopGame(): boolean {
+  if (runningPid === null) return false
+  spawn('taskkill', ['/F', '/T', '/PID', String(runningPid)])
+  return true
+}
+
 interface RuleArg {
   rules?: Rule[]
   value: string | string[]
@@ -187,9 +205,15 @@ export async function launchGame(opts: LaunchOptions, emit: Emit): Promise<void>
     child.on('error', (err) => emit({ type: 'error', message: err.message }))
     child.stdout?.on('data', (d: Buffer) => emit({ type: 'log', line: d.toString() }))
     child.stderr?.on('data', (d: Buffer) => emit({ type: 'log', line: d.toString() }))
-    child.on('exit', (code) => emit({ type: 'exit', code }))
+    child.on('exit', (code) => {
+      runningPid = null
+      emit({ type: 'exit', code })
+    })
 
-    if (child.pid) emit({ type: 'started', pid: child.pid })
+    if (child.pid) {
+      runningPid = child.pid
+      emit({ type: 'started', pid: child.pid })
+    }
   } catch (err) {
     emit({ type: 'error', message: err instanceof Error ? err.message : String(err) })
   }
