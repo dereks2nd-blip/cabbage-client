@@ -446,6 +446,18 @@ input {
   border-color: var(--accent-strong);
 }
 
+.instance-card.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.instance-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
 .instance-name {
   font-size: 13px;
   color: var(--accent);

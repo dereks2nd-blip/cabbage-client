@@ -3,6 +3,7 @@ import { delimiter, join } from 'path'
 import { mkdirSync } from 'fs'
 import { app } from 'electron'
 import { paths, ensureDir, instanceDir } from './paths'
+import { instanceDirById } from './instances'
 import { installVersion, type InstalledVersion } from './install'
 import { installFabric } from './fabric'
 import { ensureJavaRuntime } from './runtime'
@@ -18,6 +19,8 @@ export interface LaunchOptions {
   username: string
   ramMb?: number
   loader?: 'vanilla' | 'fabric'
+  /** Named instance to play (its folder holds mods/worlds). Omitted = the default <version>-<loader> instance. */
+  instanceId?: string
 }
 
 export type LaunchEvent =
@@ -165,7 +168,9 @@ export async function launchGame(opts: LaunchOptions, emit: Emit): Promise<void>
   try {
     const account = await resolveAccount(opts.username, emit)
     const loader = opts.loader ?? 'vanilla'
-    const gameDir = ensureDir(instanceDir(opts.versionId, loader))
+    const gameDir = ensureDir(
+      opts.instanceId ? instanceDirById(opts.instanceId) : instanceDir(opts.versionId, loader)
+    )
     const modsDir = ensureDir(join(gameDir, 'mods'))
     // Cabbage's own HUD mod, for matching-version Fabric instances only.
     ensureClientMod(modsDir, opts.versionId, loader)

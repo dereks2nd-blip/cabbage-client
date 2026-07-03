@@ -18,6 +18,9 @@ interface Props {
   loadingVersions: boolean
   /** Bumped by the Instances page to trigger an immediate launch. */
   launchToken: number
+  /** Named instance being played (its own mods/worlds), or null for the default. */
+  activeInstance: { id: string; name: string } | null
+  onDetach: () => void
 }
 
 export function PlayPage({
@@ -27,7 +30,9 @@ export function PlayPage({
   loader,
   setLoader,
   loadingVersions,
-  launchToken
+  launchToken,
+  activeInstance,
+  onDetach
 }: Props): JSX.Element {
   const [username, setUsername] = useState('Player')
   const [phase, setPhase] = useState<Phase>('idle')
@@ -98,7 +103,13 @@ export function PlayPage({
     setLogLines([])
     setStageMsg('Starting…')
     setPercent(null)
-    window.cabbage.launch({ versionId: selected, username, ramMb: 4096, loader })
+    window.cabbage.launch({
+      versionId: selected,
+      username,
+      ramMb: 4096,
+      loader,
+      instanceId: activeInstance?.id
+    })
   }
 
   function stop(): void {
@@ -167,6 +178,15 @@ export function PlayPage({
             disabled={busy}
             onChange={(e) => setUsername(e.target.value)}
           />
+        </div>
+      )}
+
+      {activeInstance && (
+        <div className="notice instance-banner">
+          🗂 Playing instance <b>{activeInstance.name}</b> (own mods &amp; worlds)
+          <button className="chip-x" title="Back to the default instance" onClick={onDetach}>
+            ×
+          </button>
         </div>
       )}
 

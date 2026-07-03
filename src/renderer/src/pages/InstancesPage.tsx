@@ -13,10 +13,19 @@ interface Instance {
 interface Props {
   versions: string[]
   loadingVersions: boolean
-  onPlay: (mcVersion: string, loader: 'vanilla' | 'fabric') => void
+  activeInstanceId: string | null
+  onActivate: (
+    inst: { id: string; name: string; mcVersion: string; loader: 'vanilla' | 'fabric' },
+    target: 'play' | 'mods'
+  ) => void
 }
 
-export function InstancesPage({ versions, loadingVersions, onPlay }: Props): JSX.Element {
+export function InstancesPage({
+  versions,
+  loadingVersions,
+  activeInstanceId,
+  onActivate
+}: Props): JSX.Element {
   const [instances, setInstances] = useState<Instance[]>([])
   const [newVersion, setNewVersion] = useState('')
   const [newLoader, setNewLoader] = useState<'vanilla' | 'fabric'>('fabric')
@@ -40,9 +49,16 @@ export function InstancesPage({ versions, loadingVersions, onPlay }: Props): JSX
 
   async function create(): Promise<void> {
     if (!newVersion) return
-    await window.cabbage.createInstance(newVersion, newLoader, newName.trim() || undefined)
+    const created = await window.cabbage.createInstance(
+      newVersion,
+      newLoader,
+      newName.trim() || undefined
+    )
     setNewName('')
-    setNotice(`Created ${newName.trim() || `${newVersion} (${newLoader})`}.`)
+    setNotice(
+      `Created "${created.name}" — its mods/worlds live in instances/${created.id}. ` +
+        'Hit ◆ Mods on the card to give it its own mod set.'
+    )
     refresh()
   }
 
@@ -113,7 +129,10 @@ export function InstancesPage({ versions, loadingVersions, onPlay }: Props): JSX
 
       <div className="instance-grid">
         {instances.map((inst) => (
-          <div className="instance-card" key={inst.id}>
+          <div
+            className={`instance-card ${activeInstanceId === inst.id ? 'active' : ''}`}
+            key={inst.id}
+          >
             <div className="instance-card-head">
               {renaming === inst.id ? (
                 <form
@@ -155,9 +174,36 @@ export function InstancesPage({ versions, loadingVersions, onPlay }: Props): JSX
             <div className="instance-actions">
               <button
                 className="btn play-mini"
-                onClick={() => onPlay(inst.mcVersion, inst.loader as 'vanilla' | 'fabric')}
+                onClick={() =>
+                  onActivate(
+                    {
+                      id: inst.id,
+                      name: inst.name,
+                      mcVersion: inst.mcVersion,
+                      loader: inst.loader as 'vanilla' | 'fabric'
+                    },
+                    'play'
+                  )
+                }
               >
                 ▶ Play
+              </button>
+              <button
+                className="btn small"
+                title="Manage this instance's mods"
+                onClick={() =>
+                  onActivate(
+                    {
+                      id: inst.id,
+                      name: inst.name,
+                      mcVersion: inst.mcVersion,
+                      loader: inst.loader as 'vanilla' | 'fabric'
+                    },
+                    'mods'
+                  )
+                }
+              >
+                ◆ Mods
               </button>
               <button
                 className={`btn small ${confirmDelete === inst.id ? 'danger' : ''}`}

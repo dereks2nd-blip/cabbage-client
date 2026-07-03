@@ -6,6 +6,7 @@ export interface LaunchOptions {
   username: string
   ramMb?: number
   loader?: 'vanilla' | 'fabric'
+  instanceId?: string
 }
 
 export interface ModHit {
@@ -37,33 +38,38 @@ const cabbage = {
     ipcRenderer.invoke('mods:search', query, gameVersion),
   installMod: (
     projectId: string,
-    gameVersion: string
+    gameVersion: string,
+    instanceId?: string | null
   ): Promise<{ installed: string[]; warnings: string[] }> =>
-    ipcRenderer.invoke('mods:install', projectId, gameVersion),
-  listInstalledMods: (gameVersion: string): Promise<string[]> =>
-    ipcRenderer.invoke('mods:listInstalled', gameVersion),
-  removeMod: (filename: string, gameVersion: string): Promise<void> =>
-    ipcRenderer.invoke('mods:remove', filename, gameVersion),
-  clearMods: (gameVersion: string): Promise<void> => ipcRenderer.invoke('mods:clear', gameVersion),
+    ipcRenderer.invoke('mods:install', projectId, gameVersion, instanceId),
+  listInstalledMods: (gameVersion: string, instanceId?: string | null): Promise<string[]> =>
+    ipcRenderer.invoke('mods:listInstalled', gameVersion, instanceId),
+  removeMod: (filename: string, gameVersion: string, instanceId?: string | null): Promise<void> =>
+    ipcRenderer.invoke('mods:remove', filename, gameVersion, instanceId),
+  clearMods: (gameVersion: string, instanceId?: string | null): Promise<void> =>
+    ipcRenderer.invoke('mods:clear', gameVersion, instanceId),
   installPerformancePack: (
-    gameVersion: string
+    gameVersion: string,
+    instanceId?: string | null
   ): Promise<{ installed: string[]; warnings: string[] }> =>
-    ipcRenderer.invoke('mods:installPack', gameVersion),
+    ipcRenderer.invoke('mods:installPack', gameVersion, instanceId),
   listProfiles: (): Promise<
     Array<{ name: string; mods: Array<{ projectId: string; title: string }>; updatedAt: string }>
   > => ipcRenderer.invoke('profiles:list'),
   saveProfile: (
     name: string,
-    gameVersion: string
+    gameVersion: string,
+    instanceId?: string | null
   ): Promise<{
     profile: { name: string; mods: Array<{ projectId: string; title: string }> }
     unmanaged: string[]
-  }> => ipcRenderer.invoke('profiles:save', name, gameVersion),
+  }> => ipcRenderer.invoke('profiles:save', name, gameVersion, instanceId),
   applyProfile: (
     name: string,
-    gameVersion: string
+    gameVersion: string,
+    instanceId?: string | null
   ): Promise<{ installed: string[]; warnings: string[] }> =>
-    ipcRenderer.invoke('profiles:apply', name, gameVersion),
+    ipcRenderer.invoke('profiles:apply', name, gameVersion, instanceId),
   deleteProfile: (name: string): Promise<void> => ipcRenderer.invoke('profiles:delete', name),
   getSettings: (): Promise<{ msClientId?: string; ramMb?: number }> =>
     ipcRenderer.invoke('settings:get'),
@@ -91,7 +97,8 @@ const cabbage = {
     mcVersion: string,
     loader: string,
     name?: string
-  ): Promise<{ id: string }> => ipcRenderer.invoke('instances:create', mcVersion, loader, name),
+  ): Promise<{ id: string; name: string; mcVersion: string; loader: string }> =>
+    ipcRenderer.invoke('instances:create', mcVersion, loader, name),
   renameInstance: (id: string, name: string): Promise<void> =>
     ipcRenderer.invoke('instances:rename', id, name),
   deleteInstance: (id: string): Promise<void> => ipcRenderer.invoke('instances:delete', id),

@@ -16,6 +16,13 @@ interface JavaState {
 
 export type Page = 'play' | 'instances' | 'mods' | 'performance' | 'settings'
 
+export interface ActiveInstance {
+  id: string
+  name: string
+  mcVersion: string
+  loader: 'vanilla' | 'fabric'
+}
+
 export default function App(): JSX.Element {
   const [appVersion, setAppVersion] = useState('')
   const [java, setJava] = useState<JavaState | null>(null)
@@ -29,12 +36,27 @@ export default function App(): JSX.Element {
   // Bumped when an instance card's Play is clicked: switches to the Play tab
   // and tells it to launch immediately with the freshly-set version/loader.
   const [launchToken, setLaunchToken] = useState(0)
+  // The named instance that Play/Mods currently target. Null = the default
+  // per-version instance (plain Play-tab behavior).
+  const [activeInstance, setActiveInstance] = useState<ActiveInstance | null>(null)
 
-  function playInstance(mcVersion: string, instLoader: 'vanilla' | 'fabric'): void {
-    setSelected(mcVersion)
-    setLoader(instLoader)
-    setPage('play')
-    setLaunchToken((t) => t + 1)
+  function activateInstance(inst: ActiveInstance, target: 'play' | 'mods'): void {
+    setActiveInstance(inst)
+    setSelected(inst.mcVersion)
+    setLoader(inst.loader)
+    setPage(target)
+    if (target === 'play') setLaunchToken((t) => t + 1)
+  }
+
+  // Manually changing version/loader on the Play tab detaches from the
+  // named instance — the selection no longer describes it.
+  function selectVersion(v: string): void {
+    setSelected(v)
+    setActiveInstance(null)
+  }
+  function selectLoader(l: 'vanilla' | 'fabric'): void {
+    setLoader(l)
+    setActiveInstance(null)
   }
 
   useEffect(() => {
@@ -95,21 +117,26 @@ export default function App(): JSX.Element {
             <PlayPage
               versions={versions}
               selected={selected}
-              setSelected={setSelected}
+              setSelected={selectVersion}
               loader={loader}
-              setLoader={setLoader}
+              setLoader={selectLoader}
               loadingVersions={loadingVersions}
               launchToken={launchToken}
+              activeInstance={activeInstance}
+              onDetach={() => setActiveInstance(null)}
             />
           )}
           {page === 'instances' && (
             <InstancesPage
               versions={versions}
               loadingVersions={loadingVersions}
-              onPlay={playInstance}
+              activeInstanceId={activeInstance?.id ?? null}
+              onActivate={activateInstance}
             />
           )}
-          {page === 'mods' && <ModsPage gameVersion={selected} loader={loader} />}
+          {page === 'mods' && (
+            <ModsPage gameVersion={selected} loader={loader} activeInstance={activeInstance} />
+          )}
           {page === 'performance' && <PerformancePage gameVersion={selected} />}
           {page === 'settings' && <SettingsPage appVersion={appVersion} java={java} />}
         </main>

@@ -14,6 +14,8 @@ interface ModHit {
 interface Props {
   gameVersion: string
   loader: 'vanilla' | 'fabric'
+  /** Named instance whose mods are being managed, or null for the version default. */
+  activeInstance: { id: string; name: string } | null
 }
 
 interface Profile {
@@ -37,7 +39,8 @@ const PRESETS: Array<{ label: string; query: string }> = [
   { label: '🎯 Coords/HUD', query: 'hud coordinates' }
 ]
 
-export function ModsPage({ gameVersion, loader }: Props): JSX.Element {
+export function ModsPage({ gameVersion, loader, activeInstance }: Props): JSX.Element {
+  const instanceId = activeInstance?.id ?? null
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<ModHit[]>([])
   const [loading, setLoading] = useState(false)
@@ -63,7 +66,7 @@ export function ModsPage({ gameVersion, loader }: Props): JSX.Element {
   }
 
   function refreshInstalled(): void {
-    if (gameVersion) window.cabbage.listInstalledMods(gameVersion).then(setInstalled)
+    if (gameVersion) window.cabbage.listInstalledMods(gameVersion, instanceId).then(setInstalled)
   }
 
   function refreshProfiles(): void {
@@ -75,13 +78,13 @@ export function ModsPage({ gameVersion, loader }: Props): JSX.Element {
     refreshInstalled()
     refreshProfiles()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameVersion])
+  }, [gameVersion, instanceId])
 
   async function saveProfile(): Promise<void> {
     if (!profileName.trim()) return
     setProfileBusy('save')
     try {
-      const res = await window.cabbage.saveProfile(profileName, gameVersion)
+      const res = await window.cabbage.saveProfile(profileName, gameVersion, instanceId)
       setNotice(
         `Saved profile "${res.profile.name}" (${res.profile.mods.length} mods).` +
           (res.unmanaged.length
@@ -101,7 +104,7 @@ export function ModsPage({ gameVersion, loader }: Props): JSX.Element {
     setProfileBusy(name)
     setNotice(`Applying "${name}"…`)
     try {
-      const res = await window.cabbage.applyProfile(name, gameVersion)
+      const res = await window.cabbage.applyProfile(name, gameVersion, instanceId)
       setNotice(
         `Applied "${name}": ${res.installed.length} mods installed for ${gameVersion}.` +
           (res.warnings.length ? ` ⚠ ${res.warnings.join('; ')}` : '')
@@ -123,7 +126,7 @@ export function ModsPage({ gameVersion, loader }: Props): JSX.Element {
     setInstalling((s) => ({ ...s, [hit.projectId]: 'busy' }))
     setNotice('')
     try {
-      const res = await window.cabbage.installMod(hit.projectId, gameVersion)
+      const res = await window.cabbage.installMod(hit.projectId, gameVersion, instanceId)
       setInstalling((s) => ({ ...s, [hit.projectId]: 'done' }))
       const deps = Math.max(0, res.installed.length - 1)
       setNotice(
@@ -138,13 +141,13 @@ export function ModsPage({ gameVersion, loader }: Props): JSX.Element {
   }
 
   async function remove(filename: string): Promise<void> {
-    await window.cabbage.removeMod(filename, gameVersion)
+    await window.cabbage.removeMod(filename, gameVersion, instanceId)
     refreshInstalled()
   }
 
   async function clearAll(): Promise<void> {
-    await window.cabbage.clearMods(gameVersion)
-    setNotice('Cleared all mods for this version.')
+    await window.cabbage.clearMods(gameVersion, instanceId)
+    setNotice(`Cleared all mods for ${activeInstance ? `"${activeInstance.name}"` : 'this version'}.`)
     refreshInstalled()
   }
 
@@ -153,7 +156,11 @@ export function ModsPage({ gameVersion, loader }: Props): JSX.Element {
       <div className="page-head">
         <h1>MODS</h1>
         <span className="muted">
-          {loader === 'fabric' ? `Fabric · MC ${gameVersion}` : '⚠ switch loader to Fabric on Play tab'}
+          {loader !== 'fabric'
+            ? '⚠ switch loader to Fabric on Play tab'
+            : activeInstance
+              ? `🗂 instance "${activeInstance.name}" · MC ${gameVersion}`
+              : `Fabric · MC ${gameVersion} (default instance)`}
         </span>
       </div>
 

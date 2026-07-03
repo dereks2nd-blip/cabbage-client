@@ -4,7 +4,13 @@ import { detectJava } from './launcher/java'
 import { instanceMods } from './launcher/paths'
 import { listInstallableVersions } from './launcher/versions'
 import { isGameRunning, launchGame, stopGame, type LaunchOptions } from './launcher/launch'
-import { createInstance, deleteInstance, listInstances, renameInstance } from './launcher/instances'
+import {
+  createInstance,
+  deleteInstance,
+  instanceModsById,
+  listInstances,
+  renameInstance
+} from './launcher/instances'
 import {
   searchMods,
   installMod,
@@ -28,32 +34,39 @@ export function registerLauncherIpc(ipcMain: IpcMain): void {
 
   ipcMain.handle('versions:list', () => listInstallableVersions())
 
-  // Mods only apply under Fabric, so all mod operations target the version's
-  // Fabric instance regardless of the Play tab's loader toggle.
-  const modsFor = (gameVersion: string): string => instanceMods(gameVersion, 'fabric')
+  // Mod operations target a NAMED instance when one is active, else the
+  // default Fabric instance for the version (mods only apply under Fabric).
+  const modsFor = (gameVersion: string, instanceId?: string | null): string =>
+    instanceId ? instanceModsById(instanceId) : instanceMods(gameVersion, 'fabric')
 
   ipcMain.handle('mods:search', (_e, q: string, gameVersion: string) => searchMods(q, gameVersion))
-  ipcMain.handle('mods:install', (_e, projectId: string, gameVersion: string) =>
-    installMod(projectId, gameVersion, 'fabric', modsFor(gameVersion))
+  ipcMain.handle(
+    'mods:install',
+    (_e, projectId: string, gameVersion: string, instanceId?: string | null) =>
+      installMod(projectId, gameVersion, 'fabric', modsFor(gameVersion, instanceId))
   )
-  ipcMain.handle('mods:listInstalled', (_e, gameVersion: string) =>
-    listInstalledMods(modsFor(gameVersion))
+  ipcMain.handle('mods:listInstalled', (_e, gameVersion: string, instanceId?: string | null) =>
+    listInstalledMods(modsFor(gameVersion, instanceId))
   )
-  ipcMain.handle('mods:remove', (_e, filename: string, gameVersion: string) =>
-    removeMod(modsFor(gameVersion), filename)
+  ipcMain.handle(
+    'mods:remove',
+    (_e, filename: string, gameVersion: string, instanceId?: string | null) =>
+      removeMod(modsFor(gameVersion, instanceId), filename)
   )
-  ipcMain.handle('mods:clear', (_e, gameVersion: string) => clearMods(modsFor(gameVersion)))
-  ipcMain.handle('mods:installPack', (_e, gameVersion: string) =>
-    installPerformancePack(gameVersion, 'fabric', modsFor(gameVersion))
+  ipcMain.handle('mods:clear', (_e, gameVersion: string, instanceId?: string | null) =>
+    clearMods(modsFor(gameVersion, instanceId))
+  )
+  ipcMain.handle('mods:installPack', (_e, gameVersion: string, instanceId?: string | null) =>
+    installPerformancePack(gameVersion, 'fabric', modsFor(gameVersion, instanceId))
   )
 
-  // --- mod profiles (named loadouts, applied per-version) ---
+  // --- mod profiles (named loadouts, applied per-instance) ---
   ipcMain.handle('profiles:list', () => listProfiles())
-  ipcMain.handle('profiles:save', (_e, name: string, gameVersion: string) =>
-    saveProfile(name, modsFor(gameVersion))
+  ipcMain.handle('profiles:save', (_e, name: string, gameVersion: string, instanceId?: string | null) =>
+    saveProfile(name, modsFor(gameVersion, instanceId))
   )
-  ipcMain.handle('profiles:apply', (_e, name: string, gameVersion: string) =>
-    applyProfile(name, gameVersion, 'fabric', modsFor(gameVersion))
+  ipcMain.handle('profiles:apply', (_e, name: string, gameVersion: string, instanceId?: string | null) =>
+    applyProfile(name, gameVersion, 'fabric', modsFor(gameVersion, instanceId))
   )
   ipcMain.handle('profiles:delete', (_e, name: string) => deleteProfile(name))
 
