@@ -30,6 +30,7 @@ const cabbage = {
     versionString?: string
     source?: string
   }> => ipcRenderer.invoke('java:detect'),
+  hudVersions: (): Promise<string[]> => ipcRenderer.invoke('app:hudVersions'),
   listVersions: (): Promise<{
     latestRelease: string
     versions: Array<{ id: string; type: string; releaseTime: string }>

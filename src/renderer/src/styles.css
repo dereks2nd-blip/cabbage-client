@@ -446,6 +446,11 @@ input {
   border-color: var(--accent-strong);
 }
 
+.chip.hud-chip {
+  color: var(--accent);
+  border-color: var(--accent-strong);
+}
+
 .instance-card.active {
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent);

@@ -34,6 +34,7 @@ export function InstancesPage({
   const [renaming, setRenaming] = useState('')
   const [renameValue, setRenameValue] = useState('')
   const [notice, setNotice] = useState('')
+  const [hudVersions, setHudVersions] = useState<string[]>([])
 
   function refresh(): void {
     window.cabbage.listInstances().then(setInstances)
@@ -41,6 +42,7 @@ export function InstancesPage({
 
   useEffect(() => {
     refresh()
+    window.cabbage.hudVersions().then(setHudVersions)
   }, [])
 
   useEffect(() => {
@@ -102,10 +104,13 @@ export function InstancesPage({
         >
           {versions.slice(0, 80).map((id) => (
             <option key={id} value={id}>
-              {id}
+              {hudVersions.includes(id) ? `${id} ★` : id}
             </option>
           ))}
         </select>
+        <span className="muted" title="Custom Cabbage GUI/HUD/ESP is a per-version mod build">
+          ★ = has Cabbage HUD
+        </span>
         <div className="seg">
           <button
             className={`seg-btn ${newLoader === 'vanilla' ? 'active' : ''}`}
@@ -169,6 +174,11 @@ export function InstancesPage({
               <span className="chip">{inst.loader}</span>
               {inst.modCount > 0 && <span className="chip">◆ {inst.modCount} mods</span>}
               {inst.hasWorlds && <span className="chip">🌍 worlds</span>}
+              {inst.loader === 'fabric' && hudVersions.includes(inst.mcVersion) && (
+                <span className="chip hud-chip" title="Custom Cabbage GUI/HUD/ESP auto-installs here">
+                  ★ Cabbage HUD
+                </span>
+              )}
             </div>
             <div className="instance-meta muted">{lastPlayed(inst.lastPlayedMs)}</div>
             <div className="instance-actions">

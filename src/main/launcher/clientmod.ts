@@ -10,7 +10,16 @@ import { ensureDir } from './paths'
  * Instances of other versions get nothing (Fabric's dependency check would
  * reject a mismatched jar anyway).
  */
-const HUD_VERSIONS = ['1.21.11', '1.21.4', '1.21.1', '1.20.1']
+export const HUD_VERSIONS = [
+  '1.21.11',
+  '1.21.9',
+  '1.21.5',
+  '1.21.4',
+  '1.21.1',
+  '1.20.4',
+  '1.20.2',
+  '1.20.1'
+]
 const HUD_FILENAME = 'cabbage-hud.jar'
 
 function bundledHud(mcVersion: string): string {

@@ -1,6 +1,7 @@
 import type { IpcMain } from 'electron'
 import { app, BrowserWindow } from 'electron'
 import { detectJava } from './launcher/java'
+import { HUD_VERSIONS } from './launcher/clientmod'
 import { instanceMods } from './launcher/paths'
 import { listInstallableVersions } from './launcher/versions'
 import { isGameRunning, launchGame, stopGame, type LaunchOptions } from './launcher/launch'
@@ -33,6 +34,10 @@ export function registerLauncherIpc(ipcMain: IpcMain): void {
   ipcMain.handle('java:detect', () => detectJava())
 
   ipcMain.handle('versions:list', () => listInstallableVersions())
+
+  // Versions the bundled Cabbage HUD mod is built for (custom GUI/HUD/ESP).
+  // 26.x can never join this list — no dev mappings exist for that line.
+  ipcMain.handle('app:hudVersions', () => HUD_VERSIONS)
 
   // Mod operations target a NAMED instance when one is active, else the
   // default Fabric instance for the version (mods only apply under Fabric).

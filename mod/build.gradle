@@ -8,8 +8,12 @@ plugins {
 def mcVer = findProperty('mcVer') ?: '1.21.11'
 def targets = [
     '1.21.11': [yarn: '1.21.11+build.6', fapi: '0.141.4+1.21.11', javaVer: 21],
+    '1.21.9' : [yarn: '1.21.9+build.1',  fapi: '0.134.1+1.21.9',  javaVer: 21],
+    '1.21.5' : [yarn: '1.21.5+build.1',  fapi: '0.128.2+1.21.5',  javaVer: 21],
     '1.21.4' : [yarn: '1.21.4+build.8',  fapi: '0.119.4+1.21.4',  javaVer: 21],
     '1.21.1' : [yarn: '1.21.1+build.3',  fapi: '0.116.13+1.21.1', javaVer: 21],
+    '1.20.4' : [yarn: '1.20.4+build.3',  fapi: '0.97.3+1.20.4',   javaVer: 17],
+    '1.20.2' : [yarn: '1.20.2+build.4',  fapi: '0.91.6+1.20.2',   javaVer: 17],
     '1.20.1' : [yarn: '1.20.1+build.10', fapi: '0.92.9+1.20.1',   javaVer: 17],
     '1.19.2' : [yarn: '1.19.2+build.28', fapi: '0.77.0+1.19.2',   javaVer: 17],
 ]

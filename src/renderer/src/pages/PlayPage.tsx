@@ -43,6 +43,11 @@ export function PlayPage({
   const consoleRef = useRef<HTMLDivElement>(null)
 
   const [account, setAccount] = useState<{ name: string; uuid: string } | null>(null)
+  const [hudVersions, setHudVersions] = useState<string[]>([])
+
+  useEffect(() => {
+    window.cabbage.hudVersions().then(setHudVersions)
+  }, [])
   const [authBusy, setAuthBusy] = useState(false)
   const [authError, setAuthError] = useState('')
 
@@ -223,7 +228,7 @@ export function PlayPage({
             {!loadingVersions && versions.length === 0 && <option>Offline</option>}
             {versions.slice(0, 80).map((id) => (
               <option key={id} value={id}>
-                {id}
+                {hudVersions.includes(id) ? `${id} ★ Cabbage HUD` : id}
               </option>
             ))}
           </select>
