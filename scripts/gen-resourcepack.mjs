@@ -9,8 +9,13 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const packRoot = join(root, 'resources', 'resourcepack')
 const bgDir = join(packRoot, 'assets', 'minecraft', 'textures', 'gui', 'title', 'background')
 const textsDir = join(packRoot, 'assets', 'minecraft', 'texts')
+// Modern MC (1.20.2+, incl. the 26.x line) draws GUI widgets from this sprite
+// folder — retexturing here restyles buttons with NO mappings needed, so the
+// custom look reaches versions the Java mod can't (26.x has no mappings).
+const widgetDir = join(packRoot, 'assets', 'minecraft', 'textures', 'gui', 'sprites', 'widget')
 mkdirSync(bgDir, { recursive: true })
 mkdirSync(textsDir, { recursive: true })
+mkdirSync(widgetDir, { recursive: true })
 
 // A small fuzzy tennis bird, reused across panorama faces.
 function bird(cx, cy, s) {
@@ -73,10 +78,44 @@ async function png(svg, out, size) {
   writeFileSync(out, await sharp(Buffer.from(svg)).resize(size, size).png().toBuffer())
 }
 
+async function pngWH(svg, out, w, h) {
+  writeFileSync(out, await sharp(Buffer.from(svg)).resize(w, h).png().toBuffer())
+}
+
+// --- Cabbage-skinned button sprites (200x20, nine-slice border 3) ---
+// The outer 3px is the fixed nine-slice frame; the interior stretches. Keep all
+// border decoration inside that 3px band so buttons stay crisp at any width.
+function button({ frame, interior, bevel }) {
+  return `<svg width="200" height="20" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="20" fill="#0a0f0c"/>
+    <rect x="1" y="1" width="198" height="18" fill="${frame}"/>
+    <rect x="3" y="3" width="194" height="14" fill="${interior}"/>
+    ${bevel ? `<rect x="3" y="3" width="194" height="2" fill="${bevel}"/>` : ''}
+  </svg>`
+}
+
+const BUTTONS = {
+  'button.png': button({ frame: '#63b330', interior: '#182c16', bevel: '#2f5222' }),
+  'button_highlighted.png': button({ frame: '#9be84a', interior: '#223d1b', bevel: '#3f6a2c' }),
+  'button_disabled.png': button({ frame: '#4a4d47', interior: '#131612', bevel: null })
+}
+
+// One nine-slice mcmeta shared by all three states (matches vanilla button dims).
+const BUTTON_MCMETA = JSON.stringify(
+  { gui: { scaling: { type: 'nine_slice', width: 200, height: 20, border: 3 } } },
+  null,
+  2
+)
+
 for (let i = 0; i < 4; i++) await png(sideFace(i), join(bgDir, `panorama_${i}.png`), 1024)
 await png(upFace(), join(bgDir, 'panorama_4.png'), 1024)
 await png(downFace(), join(bgDir, 'panorama_5.png'), 1024)
 await png(icon, join(packRoot, 'pack.png'), 128)
+
+for (const [name, svg] of Object.entries(BUTTONS)) {
+  await pngWH(svg, join(widgetDir, name), 200, 20)
+  writeFileSync(join(widgetDir, `${name}.mcmeta`), BUTTON_MCMETA)
+}
 
 writeFileSync(
   join(packRoot, 'pack.mcmeta'),
@@ -111,4 +150,6 @@ writeFileSync(
   ].join('\n')
 )
 
-console.log('Wrote resource pack to resources/resourcepack/ (6 panorama faces, icon, splashes)')
+console.log(
+  'Wrote resource pack to resources/resourcepack/ (6 panorama faces, icon, splashes, 3 button sprites)'
+)

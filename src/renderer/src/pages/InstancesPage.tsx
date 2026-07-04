@@ -88,6 +88,13 @@ export function InstancesPage({
         <span className="muted">each instance has its own mods, worlds &amp; settings</span>
       </div>
 
+      <div className="legend">
+        <b>★ Cabbage HUD</b> = full custom client (HUD, keystrokes, ESP, custom menus) — only
+        on versions with mod mappings. <b>Every</b> version still gets the Cabbage theme (tennis
+        title screen + lime buttons). 26.x can&apos;t run the mod (no mappings exist), so it&apos;s
+        theme-only.
+      </div>
+
       <div className="instance-create">
         <input
           className="input small"
@@ -174,9 +181,13 @@ export function InstancesPage({
               <span className="chip">{inst.loader}</span>
               {inst.modCount > 0 && <span className="chip">◆ {inst.modCount} mods</span>}
               {inst.hasWorlds && <span className="chip">🌍 worlds</span>}
-              {inst.loader === 'fabric' && hudVersions.includes(inst.mcVersion) && (
+              {inst.loader === 'fabric' && hudVersions.includes(inst.mcVersion) ? (
                 <span className="chip hud-chip" title="Custom Cabbage GUI/HUD/ESP auto-installs here">
                   ★ Cabbage HUD
+                </span>
+              ) : (
+                <span className="chip theme-chip" title="Tennis title screen + lime buttons (resource pack). No HUD/ESP on this version.">
+                  🎨 theme only
                 </span>
               )}
             </div>

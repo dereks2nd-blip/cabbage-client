@@ -451,6 +451,21 @@ input {
   border-color: var(--accent-strong);
 }
 
+.chip.theme-chip {
+  color: var(--accent-2);
+  opacity: 0.85;
+}
+
+.legend {
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: var(--text-muted, #9fb0a0);
+  background: var(--bg-elev);
+  border-left: 3px solid var(--accent-strong);
+  padding: 8px 10px;
+  margin-bottom: 14px;
+}
+
 .instance-card.active {
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent);

@@ -228,7 +228,7 @@ export function PlayPage({
             {!loadingVersions && versions.length === 0 && <option>Offline</option>}
             {versions.slice(0, 80).map((id) => (
               <option key={id} value={id}>
-                {hudVersions.includes(id) ? `${id} ★ Cabbage HUD` : id}
+                {hudVersions.includes(id) ? `${id}  ★ full HUD` : `${id}  🎨 theme only`}
               </option>
             ))}
           </select>
