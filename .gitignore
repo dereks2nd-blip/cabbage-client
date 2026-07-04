@@ -10,8 +10,10 @@ build/icon.png
 build/icon.ico
 
 # local game data + dev toolchain (huge; never ship)
-minecraft/
-.tools/
+# NOTE: leading slash anchors to repo root — a bare "minecraft/" also matches
+# the resource pack's assets/minecraft/ namespace and hid all its textures.
+/minecraft/
+/.tools/
 
 # mod build outputs (source is committed; the staged jar in resources/mods is too)
 mod/build/
